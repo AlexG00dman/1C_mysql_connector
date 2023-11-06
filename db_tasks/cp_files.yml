@@ -1,0 +1,26 @@
+  #check#
+- name: copy credintal file (user_mnt_pass)
+  copy:
+    src: './db_files/credential'
+    dest: '/root/'
+    mode: 0644
+
+- name: copy initial, settings files to '/home/mysql'
+  copy:
+    src: '{{ item }}'
+    dest: '/home/mysql'
+    mode: 0644
+  loop:
+    - './db_files/init.sql'
+    - './db_files/csv_list'
+   #- './db_files/stud_db_lite.sh'
+  become: true
+
+- name: copy daily_stud_db.sh
+  copy:
+    src: '{{ item }}'
+    dest: '/usr/bin/'
+    mode: 0755
+  loop:
+    - './db_files/daily_stud_db.sh'
+    - './db_files/export_daily_stud_db.sh'

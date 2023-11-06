@@ -1,0 +1,53 @@
+- name: prepare platform for working with daily_stud_db (lite ad version)
+  hosts: mysql01.my_host.ru
+  become: true
+
+  vars:
+    - db_host: 'localhost'
+    - mysql_port: '3336'
+    - tmp_pass: "my_pass"
+    - mount_point: "/mnt/1c_univer"
+    - moodle: "/home/moodle"
+    - csv_list: ['zachetki.csv', 'level.csv', 'distsipliny_UchPlana.csv', 'spetsialnosti.csv', 'profili.csv', 'sotrudniki.csv', 'nagruzka.csv', 'studenty.csv', 'uch_plan.csv', 'facultity.csv', 'cafedry.csv', 'distsipliny.csv', 'edudom_users.csv']
+    - locales_default_LANG: en_US.UTF-8
+    - locales_default_LC_TIME: en_GB.UTF-8
+    - time_zone: ''
+
+
+  tasks:
+    - name: Get daily_stud_db status
+      ansible.builtin.systemd:
+        name: 'daily_stud_db.timer'
+      register: daily_timer
+
+    - debug:
+        msg: '{{daily_timer.status.LoadState}}'
+
+    #    var: pg_service_status.status.ActiveState
+    #
+    #
+    - name: Get daily_stud_db container status
+      docker_container_info:
+        name: mysql
+      register: mysql_stat
+
+
+    - block:
+      - debug:
+          msg: "Daily_stud_db has installed on system before"
+      - meta: end_play
+      when: mysql_stat.exists
+              #daily_timer.status.LoadState == 'loaded' 
+      #    or mysql_stat.exists
+      
+      # ansible_distribution != "Ubuntu" or (ansible_distribution_major_version | int < 16) or (ansible_memory_mb.real.total) < 2048
+
+
+
+
+      #    - debug:
+      #    msg: "The container status is {{ mysql_stat.container['State']['Status'] }}"
+      # when: mysql_stat.exists
+
+
+

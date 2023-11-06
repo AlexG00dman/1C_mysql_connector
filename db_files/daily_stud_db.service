@@ -1,0 +1,14 @@
+[Unit]
+Description=daily_stud_db
+Wants=daily_stud_db.timer
+StartLimitIntervalSec=100
+StartLimitBurst=3
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10s
+ExecStart=/usr/bin/daily_stud_db.sh
+
+[Install]
+WantedBy=multi-user.target

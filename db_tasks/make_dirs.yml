@@ -1,0 +1,17 @@
+- name: Create essensial folders
+  file:
+    path: '/temp/'
+    owner: 'root'
+    group: 'root'
+    mode: 0755
+    state: directory
+
+- name: Create essensial folders
+  file:
+    path: '{{ item }}'
+    owner: 'mysql'
+    group: 'mysql'
+    mode: 0644
+    state: directory
+  with_items:
+    - ['/home/moodle', '/home/mysql', '/mnt/1c_univer', '/var/log/daily_stud_db']

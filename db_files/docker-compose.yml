@@ -1,0 +1,24 @@
+version: '3.3'
+services:
+  database:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'stud_db'
+      MYSQL_USER: 'mysql'
+      MYSQL_PASSWORD: 'my_pass'
+      MYSQL_ROOT_PASSWORD: 'my_pass'
+    ports:
+      - '3336:3306'
+    expose:
+      - '3336'
+    command:
+      --init-file /docker-entrypoint-initdb.d/init.sql
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
+    volumes:
+      - '/var/lib/mysql:/var/lib/mysql'
+      - '/temp:/var/lib/mysql-files'
+      - '/home/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro'   

@@ -1,0 +1,25 @@
+# - name: Install aptitude
+    #apt:
+       #name: aptitude
+       #state: latest
+       #update_cache: true
+
+- name: Upgrade the OS (apt-get dist-upgrade)
+  ansible.builtin.apt:
+    upgrade: dist
+
+
+- name: Install required system packages
+  apt:
+    pkg: ['python3-pip', 'python3-setuptools','acl','smbclient','cifs-utils' ]
+    #xida #add some packet
+    # - virtualenv
+    state: latest
+    update_cache: true
+
+
+- name: Install pyMySQL and docker-py python modules
+  pip:
+    name: "{{ item }}"
+    state: present
+  with_items: ['docker-py', 'pyMySQL']

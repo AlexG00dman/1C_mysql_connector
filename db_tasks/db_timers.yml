@@ -1,0 +1,22 @@
+- name: daily_stud_db and timer and service '/lib/systemd/system/'
+  copy:
+    src: '{{ item }}'
+    dest: '/lib/systemd/system/'
+    mode: 0644
+  loop:
+    - './db_files/daily_stud_db.timer' 
+    - './db_files/export_daily_stud_db.timer'  
+    - './db_files/daily_stud_db.service' 
+    - './db_files/export_daily_stud_db.service'  
+
+
+- name: make sure daily_stud_db and export_daily_stud_db the timer service is started
+  systemd:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  loop: 
+    - 'daily_stud_db.timer'
+    - 'export_daily_stud_db.timer'  
+  

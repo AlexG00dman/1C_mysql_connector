@@ -1,0 +1,21 @@
+- name: Check builtin module
+  ansible.builtin.package:
+    name: cifs-utils
+    state: present
+
+
+- name: Check mountpoint exist
+  file:
+    path: "{{mount_point}}"
+    state: directory
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Mount 1C_univer share
+  mount:
+    src: //sstu-deps.sstudepsdom/uit/ois/Temp
+    path: "{{ mount_point }}"
+    fstype: cifs
+    opts: credentials=/root/credential
+    state: mounted

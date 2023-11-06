@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer for export_daily_stud_db.
+Requires=export_daily_stud_db.timer
+
+[Timer]
+Unit=export_daily_stud_db.service
+OnCalendar=Mon-Fri *-*-* 23:50:00
+
+[Install]
+WantedBy=timers.target
+                     

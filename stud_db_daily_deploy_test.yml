@@ -1,0 +1,234 @@
+- name: prepare platform for working with daily_stud_db (lite ad version) 
+  hosts: mysql01.my_host.ru 
+  become: true
+
+  vars:
+    - db_host: 'localhost'
+    - mysql_port: '3336'  
+    - tmp_pass: "my_pass"
+    - mount_point: "/mnt/1c_univer"
+    - moodle: "/home/moodle"
+    - csv_list: ['zachetki.csv', 'level.csv', 'distsipliny_UchPlana.csv', 'spetsialnosti.csv', 'profili.csv', 'sotrudniki.csv', 'nagruzka.csv', 'studenty.csv', 'uch_plan.csv', 'facultity.csv', 'cafedry.csv', 'distsipliny.csv', 'edudom_users.csv']
+    - locales_default_LANG: en_US.UTF-8
+    - locales_default_LC_TIME: en_GB.UTF-8
+    - time_zone: ''
+
+
+  tasks:
+    #check system on min requerements 
+    - block: 
+      - debug:
+          msg: "Requirements Ubuntu 20.04, and at liase 2048 mb memory"
+      - meta: end_play
+      when: ansible_distribution != "Ubuntu" or (ansible_distribution_major_version | int < 16) or (ansible_memory_mb.real.total) < 1024 
+
+
+    - name: Get daily_stud_db status
+      ansible.builtin.systemd:
+        name: 'daily_stud_db.timer'
+      register: daily_timer
+
+
+   # set timezone
+    - include_tasks: ./db_tasks/set_locale.yml
+
+    #install app
+    - include_tasks: ./db_tasks/install_app.yml
+
+    #docker setup
+    - include_tasks: ./db_tasks/docker_setup.yml
+      # name: docker setup
+
+
+    - name: Get daily_stud_db container status
+      docker_container_info:
+        name: mysql
+      register: mysql_stat  
+
+    #check system on previous deployment
+    - block:
+      - debug:
+          msg: "Daily_stud_db has deployed before"
+      - meta: end_play
+      when: mysql_stat.exists or daily_timer.status.LoadState == 'loaded'
+
+
+    #create users
+    - include_tasks: ./db_tasks/create_users.yml
+
+    #make essensial directories
+    - include_tasks: ./db_tasks/make_dirs.yml
+
+    #cp configuration files
+    - include_tasks: ./db_tasks/cp_files.yml
+
+
+    - name: Get base name
+      shell: date +"%d%m%y" -d "1 day ago"
+      register: cb_name
+
+    - name: Register base name
+      debug:
+        msg: "current{{cb_name.stdout}}"
+
+    - name: Set previous base string 
+      replace:
+        path: '/home/mysql/init.sql'
+        regexp: 'current+[0-9]{1,}'
+        replace: 'current{{cb_name.stdout}}'
+        #elegate_to: localhost
+
+    # set timezone
+    ## - include_tasks: ./db_tasks/set_locale.yml
+  
+    #install app
+    ##- include_tasks: ./db_tasks/install_app.yml
+
+    #docker setup
+    ##- include_tasks: ./db_tasks/docker_setup.yml
+      # name: docker setup
+
+    #mount 1c_univer
+    - include_tasks: ./db_tasks/mount_fs.yml  
+
+
+    - name: Copy tmp file for load to db /temp/
+      copy:
+        src: "{{ mount_point }}/{{ item }}"
+        dest: "/temp/{{ item }}"
+        mode: 0644
+        remote_src: yes
+      loop: "{{ csv_list }}"
+
+
+    - name: Umount "{{mount_point}}"
+      command: umount -f "{{mount_point}}"  
+
+      #- name: run stud_db.sh script
+      #ansible.builtin.shell: /home/mysql/stud_db_lite.sh
+
+    - name: Create MySql data container
+      community.docker.docker_container:
+        name: daily_stud_db
+        image: mysql:5.7
+        volumes:
+          - '/temp:/var/lib/mysql-files'
+          - '/home/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro'
+        env:
+          MYSQL_ROOT_PASSWORD: '{{ tmp_pass }}' #'mySQLRootPassWord'
+          #MYSQL_USER: 'mysql'
+          #MYSQL_PASSWORD: '{{ tmp_pass }}' #'mySQLRootPassWord'
+        ports:
+          - '{{mysql_port}}:3306'
+        exposed_ports:
+          - '{{mysql_port}}'
+        command: 
+          --socket=/var/run/mysqld/mysqld.sock
+        
+          --init-file=/docker-entrypoint-initdb.d/init.sql
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+        state: started
+
+
+    - name: Generate password for mysql root
+      shell: openssl rand -base64 12
+      register: mysql_pass_
+
+    - name: Generate password for mysql root
+      shell: openssl rand -base64 12
+      register: mysql_root_pass_
+
+
+    - name: Make pass stings
+      set_fact:
+        mysql_root_pass: "{{ mysql_root_pass_.stdout | regex_replace('[^A-Za-z0-9:.,+\\-!=@]', '') }}"
+        mysql_pass: "{{ mysql_pass_.stdout | regex_replace('[^A-Za-z0-9:.,+\\-!=@]', '') }}"
+
+
+    #- name: Show password string for mysql and mysql root
+    #debug:
+    #msg: "user: 'mysql' pass: {{ mysql_pass }} user: 'root' pass: {{ mysql_root_pass }}"
+
+
+    - name: Save my_variable to data.txt file
+      copy:
+        content: "{{ item.name }}: : {{ item.value }}"
+        dest: '/home/mysql/mysql_pass'
+      loop:
+        - { name: 'MYSQL_PASSWORD', pass: '{{ mysql_pass }}' }
+        - { name: 'MYSQL_ROOT_PASSWORD', pass: '{{ mysql_root_pass }}' }
+
+
+          #    - name:  Output mysql_pass and mysql_root_pass in file
+          #lineinfile:
+          # dest: "/home/mysql/mysql_pass"
+          #line: "{{ item.variable }}: {{ item.value }}"
+          # create: yes
+          # loop:
+          #- { variable: 'MYSQL_PASSWORD', value: '{{ mysql_pass }}' }
+          # - { variable: 'MYSQL_ROOT_PASSWORD', value: '{{ mysql_root_pass }}' } 
+      #delegate_to: localhost
+
+
+      #pause
+    - name: Waiting for Run container status
+      shell: docker logs daily_stud_db
+      register: docker_init
+      retries: 10
+      delay: 20
+      until: "'MySQL init process done' in docker_init.stdout"
+
+    - debug:
+        msg: "Daily_stud_db has run"
+
+
+    - name: update mysql root password for root account
+      mysql_user:
+        login_user: 'root'
+        login_password: "{{tmp_pass}}"
+        login_host: '{{ db_host }}' #'localhost' ###check
+        #login_unix_socket: /var/run/mysqld/mysqld.sock
+        name: '{{ item.user_name }}'
+        password: '{{ item.user_pass }}'
+        host: '{{ item.user_host }}'  #'localhost'
+        login_port: '{{mysql_port}}'
+        priv: "*.*:ALL,GRANT"
+ #      check_implicit_admin: true
+        state: present
+      loop:
+     #  - { user_name: 'mysql', user_pass: '{{ mysql_pass }}', user_host: 'localhost' }
+        - { user_name: 'mysql', user_pass: '{{ mysql_pass }}', user_host: '%' }
+        - { user_name: 'root', user_pass: '{{ mysql_root_pass }}',  user_host: 'localhost'  }
+
+
+    - name: Create users
+      community.mysql.mysql_query:
+        login_port: "{{ mysql_port }}"
+        login_user: "root"
+        login_host: "localhost"
+        login_password: '{{tmp_pass}}'
+        query:
+         - DROP USER `root`@`%`;
+           # FLUSH PRIVILEGES;
+
+
+    # #set and configure db_timers
+    - include_tasks: ./db_tasks/db_timers.yml
+
+
+
+      ###debugging###
+         # - name: Create users
+         #community.mysql.mysql_query:
+         #login_port: "{{ mysql_port }}"
+         #login_user: "root"
+         #login_host: "localhost"
+         #"/var/run/mysqld/mysqld.sock"
+         #login_unix_socket: /var/run/mysqld/mysqld.sock
+         #login_password: '{{tmp_pass}}'
+       #query:
+         #- ALTER USER 'mysql'@'localhost' IDENTIFIED BY "mypass1230011";
+         #- GRANT ALL PRIVILEGES ON *.* TO 'mysql'@'%' WITH GRANT OPTION;
+         #- FLUSH PRIVILEGES;
+   
