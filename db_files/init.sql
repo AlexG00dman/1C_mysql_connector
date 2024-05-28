@@ -217,34 +217,32 @@ LOAD DATA INFILE "/var/lib/mysql-files/level.csv" INTO TABLE zm_level COLUMNS TE
 
 /*0.3 исправлена ошибка определение фрмы образования of edu_form добавлено исключение факультета УПНК*/
 /*таблица полных сведений о студентах*/
-CREATE TABLE IF NOT EXISTS
-`op_students_info` as SELECT `id` as `number`,`full_name`,concat(lpad(plan.code,6,0),'.',plan.start,'.',plan.fin,'.',plan.year,'.',sbook.code_group,' Не изменять') as `description`,`inst_abbr`,concat (`dir_nick`,'-',`year`,`code_group`) as `sgroup`,plan.OKCO,
-CASE 
-WHEN `code_form` = 1 then 'Очная-сокращенная'
-WHEN `code_form` = 2 then 'Заочная'
-WHEN `code_form` = 3 then 'Заочная-сокращенная'
-WHEN `code_form` = 4 then 'Очно-заочная'
-WHEN `code_form` = 5 then 'Очная'
-ELSE 'очепятка в тексти очивидно же'
-end as `edu_form`,concat(dir.clip_name,'(',plan.code_profile,',',level_.name,')') as `prof_name`,plan.code,zm_students.bdate
+/*28.05.24 исправлена ошибка переноса строки \r */
+#0.3 changed procedure of determination of edu_form                                         CREATE TABLE IF NOT EXISTS                                                                  op_students_info as SELECT `id` as `number`,`full_name`,concat(lpad(plan.code,6,0),'.',plan.start,'.',plan.fin,'.',plan.year,'.',sbook.code_group,' Не изменять') as `description`, REPLACE(`inst_abbr`, '\r', '') AS `inst_abbr`,concat (`dir_nick`,'-',`year`,`code_group`) as `sgroup`,plan.OKCO,                                                                            CASE
+    WHEN code_form = 1 then 'очная'
+    WHEN code_form = 2 then 'заочная-сокращенная'
+    WHEN code_form = 3 then 'заочная'                                                           WHEN code_form = 4 then 'очная-сокращенная'                                                 WHEN code_form = 5 then 'очная'                                                         ELSE 'очепятка в тексти очивидно же'                                                        end as `edu_form`, concat(dir.clip_name,'(',plan.code_profile,',',level_.name,')') as prof_name,plan.code, zm_students.bdate
 FROM `zm_students`
 LEFT JOIN `zm_assbook` `sbook` ON zm_students.code_stud = sbook.code_student
 LEFT JOIN `zm_uch_plan` `plan` ON plan.code = sbook.code_up
 LEFT JOIN `zm_inst` `inst` ON inst.inst_code=plan.code_inst
 LEFT JOIN `zm_level` `level_` ON level_.code_level=plan.code_level
 LEFT JOIN `zm_directions` `dir` ON dir.code_dir=plan.code_dir
-WHERE `code_student` and plan.code is not null 
-and inst_abbr != 'УПНК'
+WHERE `code_student` and plan.code is not null
+and inst_abbr != 'УУПНК'
 ORDER BY `full_name`;
 
+
 /*таблица для загрузки в domain*/
-/*0.3 в таблицу добавлено поле префикса edu_form_pref и исключение факультета УПНК*/
+/*28.05.24 исправлена ошибка переноса строки \r */
 CREATE TABLE IF NOT EXISTS op_students_info_ad
-AS SELECT id as number, full_name, concat (inst_abbr, ' ', dir_nick,'-', year, code_group, ' ', plan.start, '_', plan.fin) as description, replace (bdate, '.','') as bdate,
+AS SELECT `id` as `number`, `full_name`, REPLACE(concat(inst_abbr, ' ', dir_nick, '-', year,code_group, ' ', plan.start, '_', plan.fin), '\r', '')  as `description`, REPLACE(replace(bdate, '.', ''), '\r', '') as bdate,
+CASE
     WHEN code_form in (1, 4, 5) then 'd_'
     WHEN code_form in (2, 3) then 'z_'
     ELSE 'na_'
-FROM zm_students
+end as edu_form_pref
+FROM `zm_students`
 LEFT JOIN zm_assbook sbook ON zm_students.code_stud = sbook.code_student
 LEFT JOIN zm_uch_plan plan ON plan.code = sbook.code_up
 LEFT JOIN zm_inst inst ON inst.inst_code=plan.code_inst
@@ -253,6 +251,8 @@ LEFT JOIN zm_directions dir ON dir.code_dir=plan.code_dir
 WHERE code_student and plan.code is not null
 and inst_abbr != 'УПНК'
 ORDER BY full_name;
+
+
 
 /*в таблицу для загрузки добавлен пустой столбец ''password*/
 /*довалено иссключение email состоящих из одного символа 22.09.22*/
@@ -285,3 +285,12 @@ and a.code_state in (1,3)
  ) a where username regexp '^[0-9]+$'
  /*только логины, состоящие из цифр*/
 order by cohort1;
+
+
+/*процедура добавления таблиц для OKПM*/
+USE `okpm`;
+DROP TABLE IF EXISTS `op_students`, `op_students_info`;
+CREATE TABLE IF NOT EXISTS `op_students` AS SELECT * FROM daily_stud_db270524.op_students;
+ALTER TABLE `op_students` COMMENT = 'table op_students 110424';
+CREATE TABLE IF NOT EXISTS `op_students_info` AS SELECT * FROM daily_stud_db270524.op_students_info;
+ALTER TABLE `op_students_info` COMMENT = 'table op_students_info 110424';
