@@ -229,7 +229,7 @@ LEFT JOIN `zm_inst` `inst` ON inst.inst_code=plan.code_inst
 LEFT JOIN `zm_level` `level_` ON level_.code_level=plan.code_level
 LEFT JOIN `zm_directions` `dir` ON dir.code_dir=plan.code_dir
 WHERE `code_student` and plan.code is not null
-and inst_abbr != 'УУПНК'
+and left(inst_abbr,4) != 'УУПНК'
 ORDER BY `full_name`;
 
 
@@ -249,7 +249,7 @@ LEFT JOIN zm_inst inst ON inst.inst_code=plan.code_inst
 LEFT JOIN zm_level level_ ON level_.code_level=plan.code_level
 LEFT JOIN zm_directions dir ON dir.code_dir=plan.code_dir
 WHERE code_student and plan.code is not null
-and inst_abbr != 'УПНК'
+and (inst_abbr, 4) != 'УПНК'
 ORDER BY full_name;
 
 
