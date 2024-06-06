@@ -1,14 +1,13 @@
 /*create database*/
-/*версия 0.3 исправленны некоторые ошибки версии 0.2 изменено название базы данных */
-DROP DATABASE IF EXISTS `daily_stud_db080923`;
-CREATE DATABASE IF NOT EXISTS `daily_stud_db080923` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `daily_stud_db080923`;
+DROP DATABASE IF EXISTS `daily_stud_db060624`;
+CREATE DATABASE IF NOT EXISTS `daily_stud_db060624` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `daily_stud_db060624`;
 
 /*create tables*/
 
 /* Зачетные книги студентов*/
 CREATE TABLE IF NOT EXISTS
- `zm_assbook` (
+ `t_assbook` (
   `id` varchar(45) NOT NULL,
   `code_student` varchar(45) DEFAULT NULL,
   `code_up` int DEFAULT NULL,
@@ -19,7 +18,7 @@ CREATE TABLE IF NOT EXISTS
 
 /* кафедры институтов*/
 CREATE TABLE IF NOT EXISTS
- `zm_chiar` (
+ `t_chiar` (
   `code_chiar` int NOT NULL,
   `code_dep` int DEFAULT NULL,
   `name` varchar(250) DEFAULT NULL,
@@ -30,7 +29,7 @@ CREATE TABLE IF NOT EXISTS
 
 /*Наименования дисциплин*/
 CREATE TABLE IF NOT EXISTS
- `zm_courses` (
+ `t_courses` (
   `code_course` int NOT NULL,
   `course_name` varchar(250) DEFAULT NULL,
   FULLTEXT KEY `name` (`course_name`)
@@ -39,12 +38,12 @@ CREATE TABLE IF NOT EXISTS
 
 /*Дисциплины учебных планов*/
 CREATE TABLE IF NOT EXISTS
- `zm_courses_ap` (
+ `t_courses_ap` (
   `code_course` int NOT NULL,
   `chair` varchar(250) DEFAULT NULL,
   `code_chair` int DEFAULT NULL,
   `code_ap` int DEFAULT NULL,
-  `rec_mark` varchar(11) DEFAULT NULL,
+  `rec_mark` varchar(45) DEFAULT NULL,
   `ass_period` int DEFAULT NULL,
   `code_payload` varchar(11) DEFAULT NULL,
   `code_ass` varchar(11) DEFAULT NULL,
@@ -56,7 +55,7 @@ CREATE TABLE IF NOT EXISTS
 
 /*Направления обучения*/
 CREATE TABLE IF NOT EXISTS
- `zm_directions` (
+ `t_directions` (
   `code_dir` int NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `code_inst` int DEFAULT NULL,
@@ -66,9 +65,9 @@ CREATE TABLE IF NOT EXISTS
   PRIMARY KEY (`code_dir`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-/* Пользователи домена */
+/* Пользователи домена sstuedudom*/
 CREATE TABLE IF NOT EXISTS
- `zm_dom_users` (
+ `t_dom_users` (
  `login` varchar(100) NOT NULL,
  `staff_id` varchar(10) DEFAULT NULL,
  `code_staff` int DEFAULT NULL,
@@ -76,6 +75,7 @@ CREATE TABLE IF NOT EXISTS
  `email` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 /*Формы обучения не используемая таблица исключена*/
 /*CREATE TABLE IF NOT EXISTS
@@ -87,16 +87,16 @@ CREATE TABLE IF NOT EXISTS
 
 /*Институты*/
 CREATE TABLE IF NOT EXISTS
- `zm_inst` (
-  `inst_code` varchar(10) NOT NULL,
+ `t_inst` (
+  `inst_code` int NOT NULL, /*varchar(10) NOT NULL,*/
   `inst_name` varchar(250) DEFAULT NULL,
   `inst_abbr` varchar(10) DEFAULT NULL,
   PRIMARY KEY (`inst_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Institutions of education';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Institutions of sstu';
 
 /*Уровни образования*/
 CREATE TABLE IF NOT EXISTS
- `zm_level` (
+ `t_level` (
   `name` varchar(45) DEFAULT NULL,
   `code_level` int NOT NULL,
   PRIMARY KEY (`code_level`)
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS
 
 /*Электронная почта сотрудников (не используется)*/
 CREATE TABLE IF NOT EXISTS
- `zm_mail_users` (
+ `t_mail_users` (
   `code_staff` int DEFAULT NULL COMMENT '1C Un',
   `staff_id` int DEFAULT NULL COMMENT '1C Kadr',
   `email` varchar(250) DEFAULT NULL
@@ -112,15 +112,16 @@ CREATE TABLE IF NOT EXISTS
 
 /*Профили основных образовательных программ*/
 CREATE TABLE IF NOT EXISTS
- `zm_profile` (
+ `t_profile` (
   `code_profile` varchar(11) NOT NULL,
   `name` varchar(400) DEFAULT NULL,
   PRIMARY KEY (`code_profile`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
 /*Преподаватели*/
 CREATE TABLE IF NOT EXISTS
- `zm_staff` (
+ `t_staff` (
   `code_staff` int NOT NULL COMMENT '1C Univ',
   `full_name` varchar(250) DEFAULT NULL,
   `code_chiar` int DEFAULT NULL,
@@ -134,7 +135,7 @@ CREATE TABLE IF NOT EXISTS
 
 /*Плановая нагрузка преподавателей по дисциплинам по видам нагрузки*/
 CREATE TABLE IF NOT EXISTS
- `zm_staff_load` (
+ `t_staff_load` (
   `code_course` int DEFAULT NULL,
   `code_chiar` int DEFAULT NULL,
   `code_staff` varchar(11) DEFAULT NULL,
@@ -152,9 +153,10 @@ CREATE TABLE IF NOT EXISTS
   KEY `code_course` (`code_course`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
 /*Студенты*/
 CREATE TABLE IF NOT EXISTS
- `zm_students` (
+ `t_students` (
   `code_stud` int NOT NULL,
   `full_name` varchar(245) DEFAULT NULL,
   `card_code` varchar(45) DEFAULT NULL,
@@ -167,7 +169,7 @@ CREATE TABLE IF NOT EXISTS
 
 /*Учебные планы*/
 CREATE TABLE IF NOT EXISTS
- `zm_uch_plan` (
+ `t_uch_plan` (
   `code` int NOT NULL,
   `start` int DEFAULT NULL,
   `fin` int DEFAULT NULL,
@@ -191,41 +193,45 @@ CREATE TABLE IF NOT EXISTS
   KEY `exp_mark` (`exp_mark`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-/*процедура загрузки файлов load data files*/
-LOAD DATA INFILE "/var/lib/mysql-files/zachetki.csv" INTO TABLE zm_assbook COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/distsipliny_UchPlana.csv" INTO TABLE zm_courses_ap COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/spetsialnosti.csv" INTO TABLE zm_directions COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/profili.csv" INTO TABLE zm_profile COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/sotrudniki.csv" INTO TABLE zm_staff COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/nagruzka.csv" INTO TABLE zm_staff_load COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/studenty.csv" INTO TABLE zm_students COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/uch_plan.csv" INTO TABLE zm_uch_plan COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/facultity.csv" INTO TABLE zm_inst COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/cafedry.csv" INTO TABLE zm_chiar COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/distsipliny.csv" INTO TABLE zm_courses COLUMNS TERMINATED BY ';';
-LOAD DATA INFILE "/var/lib/mysql-files/edudom_users.csv" INTO TABLE zm_dom_users COLUMNS TERMINATED BY';';
-LOAD DATA INFILE "/var/lib/mysql-files/level.csv" INTO TABLE zm_level COLUMNS TERMINATED BY';';
 
-/*0.3 исправлена ошибка определение фрмы образования of edu_form добавлено исключение факультета УПНК*/
-/*таблица полных сведений о студентах*/
-/*28.05.24 исправлена ошибка переноса строки \r */
-#0.3 changed procedure of determination of edu_form                                         CREATE TABLE IF NOT EXISTS                                                                  op_students_info as SELECT `id` as `number`,`full_name`,concat(lpad(plan.code,6,0),'.',plan.start,'.',plan.fin,'.',plan.year,'.',sbook.code_group,' Не изменять') as `description`, REPLACE(`inst_abbr`, '\r', '') AS `inst_abbr`,concat (`dir_nick`,'-',`year`,`code_group`) as `sgroup`,plan.OKCO,                                                                            CASE
+/*load data files*/
+LOAD DATA INFILE "/var/lib/mysql-files/zachetki.csv" INTO TABLE t_assbook COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/distsipliny_UchPlana.csv" INTO TABLE t_courses_ap COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/spetsialnosti.csv" INTO TABLE t_directions COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/profili.csv" INTO TABLE t_profile COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/sotrudniki.csv" INTO TABLE t_staff COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/nagruzka.csv" INTO TABLE t_staff_load COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/studenty.csv" INTO TABLE t_students COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/uch_plan.csv" INTO TABLE t_uch_plan COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/facultity.csv" INTO TABLE t_inst COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/cafedry.csv" INTO TABLE t_chiar COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/distsipliny.csv" INTO TABLE t_courses COLUMNS TERMINATED BY ';';
+LOAD DATA INFILE "/var/lib/mysql-files/edudom_users.csv" INTO TABLE t_dom_users COLUMNS TERMINATED BY';';
+LOAD DATA INFILE "/var/lib/mysql-files/level.csv" INTO TABLE t_level COLUMNS TERMINATED BY';';
+
+#0.3 changed procedure of determination of edu_form
+CREATE TABLE IF NOT EXISTS
+op_students_info as SELECT `id` as `number`,`full_name`,concat(lpad(plan.code,6,0),'.',plan.start,'.',plan.fin,'.',plan.year,'.',sbook.code_group,' Не изменять') as `description`, REPLACE(`inst_abbr`, '\r', '') AS `inst_abbr`,concat (`dir_nick`,'-',`year`,`code_group`) as `sgroup`,plan.OKCO,
+CASE
     WHEN code_form = 1 then 'очная'
     WHEN code_form = 2 then 'заочная-сокращенная'
-    WHEN code_form = 3 then 'заочная'                                                           WHEN code_form = 4 then 'очная-сокращенная'                                                 WHEN code_form = 5 then 'очная'                                                         ELSE 'очепятка в тексти очивидно же'                                                        end as `edu_form`, concat(dir.clip_name,'(',plan.code_profile,',',level_.name,')') as prof_name,plan.code, zm_students.bdate
-FROM `zm_students`
-LEFT JOIN `zm_assbook` `sbook` ON zm_students.code_stud = sbook.code_student
-LEFT JOIN `zm_uch_plan` `plan` ON plan.code = sbook.code_up
-LEFT JOIN `zm_inst` `inst` ON inst.inst_code=plan.code_inst
-LEFT JOIN `zm_level` `level_` ON level_.code_level=plan.code_level
-LEFT JOIN `zm_directions` `dir` ON dir.code_dir=plan.code_dir
+    WHEN code_form = 3 then 'заочная'
+    WHEN code_form = 4 then 'очная-сокращенная'
+    WHEN code_form = 5 then 'очная'
+ELSE 'очепятка в тексти очивидно же'
+end as `edu_form`, concat(dir.clip_name,'(',plan.code_profile,',',level_.name,')') as prof_name,plan.code, t_students.bdate
+FROM `t_students`
+LEFT JOIN `t_assbook` `sbook` ON t_students.code_stud = sbook.code_student
+LEFT JOIN `t_uch_plan` `plan` ON plan.code = sbook.code_up
+LEFT JOIN `t_inst` `inst` ON inst.inst_code=plan.code_inst
+LEFT JOIN `t_level` `level_` ON level_.code_level=plan.code_level
+LEFT JOIN `t_directions` `dir` ON dir.code_dir=plan.code_dir
 WHERE `code_student` and plan.code is not null
-and left(inst_abbr,4) != 'УУПНК'
+and left(inst_abbr,4) != 'УПНК'
 ORDER BY `full_name`;
 
 
-/*таблица для загрузки в domain*/
-/*28.05.24 исправлена ошибка переноса строки \r */
+#edu_form_prefix added in ver. 0.3
 CREATE TABLE IF NOT EXISTS op_students_info_ad
 AS SELECT `id` as `number`, `full_name`, REPLACE(concat(inst_abbr, ' ', dir_nick, '-', year,code_group, ' ', plan.start, '_', plan.fin), '\r', '')  as `description`, REPLACE(replace(bdate, '.', ''), '\r', '') as bdate,
 CASE
@@ -233,16 +239,15 @@ CASE
     WHEN code_form in (2, 3) then 'z_'
     ELSE 'na_'
 end as edu_form_pref
-FROM `zm_students`
-LEFT JOIN zm_assbook sbook ON zm_students.code_stud = sbook.code_student
-LEFT JOIN zm_uch_plan plan ON plan.code = sbook.code_up
-LEFT JOIN zm_inst inst ON inst.inst_code=plan.code_inst
-LEFT JOIN zm_level level_ ON level_.code_level=plan.code_level
-LEFT JOIN zm_directions dir ON dir.code_dir=plan.code_dir
+FROM `t_students`
+LEFT JOIN t_assbook sbook ON t_students.code_stud = sbook.code_student
+LEFT JOIN t_uch_plan plan ON plan.code = sbook.code_up
+LEFT JOIN t_inst inst ON inst.inst_code=plan.code_inst
+LEFT JOIN t_level level_ ON level_.code_level=plan.code_level
+LEFT JOIN t_directions dir ON dir.code_dir=plan.code_dir
 WHERE code_student and plan.code is not null
-and (inst_abbr, 4) != 'УПНК'
+and left(inst_abbr, 4) != 'УПНК'
 ORDER BY full_name;
-
 
 
 /*в таблицу для загрузки добавлен пустой столбец ''password*/
@@ -262,7 +267,7 @@ concat(lpad(up.code,6,0),'.',up.start,'.',up.fin,'.',up.year,'.',a.code_group,' 
 /* 20 символов слева являются ключем группировки!!!*/
 concat(up.okco,'.',up.code_level,'.',up.code_profile) as cohort1,
 'ldap' auth, trim(id) idnumber, 'ru' lang
-FROM zm_students s, zm_assbook a, zm_uch_plan up
+FROM t_students s, t_assbook a, t_uch_plan up
 where s.code_stud=a.code_student
 /*Связь ФИО с зачеткой*/
 and a.code_up=up.code
@@ -281,7 +286,7 @@ order by cohort1;
 /*процедура добавления таблиц для OKПM*/
 USE `okpm`;
 DROP TABLE IF EXISTS `op_students`, `op_students_info`;
-CREATE TABLE IF NOT EXISTS `op_students` AS SELECT * FROM daily_stud_db270524.op_students;
+CREATE TABLE IF NOT EXISTS `op_students` AS SELECT * FROM daily_stud_db060624.op_students;
 ALTER TABLE `op_students` COMMENT = 'table op_students 110424';
-CREATE TABLE IF NOT EXISTS `op_students_info` AS SELECT * FROM daily_stud_db270524.op_students_info;
+CREATE TABLE IF NOT EXISTS `op_students_info` AS SELECT * FROM daily_stud_db060624.op_students_info;
 ALTER TABLE `op_students_info` COMMENT = 'table op_students_info 110424';
