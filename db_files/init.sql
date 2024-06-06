@@ -132,15 +132,6 @@ CREATE TABLE IF NOT EXISTS
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
-/*Строки для зачисления преподавателей на список курсов*/
-CREATE TABLE IF NOT EXISTS
- `zm_staff_bulk` (
-  `course_string` varchar(4096) DEFAULT NULL,
-  `cnt` int DEFAULT NULL,
-  `mh` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
 /*Плановая нагрузка преподавателей по дисциплинам по видам нагрузки*/
 CREATE TABLE IF NOT EXISTS
  `zm_staff_load` (
