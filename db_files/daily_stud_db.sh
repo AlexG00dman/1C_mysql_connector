@@ -129,12 +129,12 @@ cat $csv_list | while read csv_file; do cp "$mnt_dir/$csv_file" $tmp_dir; done
 
 delimiter
 
-#check zip archive exists
-if [ -z "$(find $home_dir -name "daily_stud_db$base_date.zip" 2> /dev/null)" ]; then
-        echo "daily_stud_db$base_date.zip created"  >>  "$mnt_log"
-        cat $csv_list | while read csv_file; do zip -j "$home_dir/daily_stud_db$base_date.zip" "$tmp_dir/$csv_file" -x $home_dir >> "$mnt_log"; done
+#check tar.gz archive exists
+if [ -z "$(find $home_dir -name "daily_stud_db$base_date.tar.gz" 2> /dev/null)" ]; then
+        echo "daily_stud_db$base_date.tar.gz created" >> "$mnt_log"
+        tar -czvf "$home_dir/daily_stud_db$base_date.tar.gz" -C "$tmp_dir" $(cat $csv_list) >> "$mnt_log"
 else
-        echo "file daily_stud_db$base_date.zip exists" >> "$mnt_log"
+        echo "file daily_stud_db$base_date.tar.gz exists" >> "$mnt_log"
 fi
 
 u_mount
