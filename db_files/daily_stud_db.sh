@@ -157,6 +157,6 @@ sed -i 's/daily_stud_db\([0-9]\{6\}\)/'daily_stud_db$base_date'/g' /home/mysql/i
 #fi
 
 
-
 #docker restart mysql container
 docker restart daily_stud_db
+echo "container daily_stud_db restarted"
