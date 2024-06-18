@@ -1,7 +1,11 @@
-/*create database*/
-DROP DATABASE IF EXISTS `daily_stud_db060624`;
-CREATE DATABASE IF NOT EXISTS `daily_stud_db060624` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `daily_stud_db060624`;
+/*create database deprecated  part*/
+/*DROP DATABASE IF EXISTS `daily_stud_db180624`;*/
+/*CREATE DATABASE IF NOT EXISTS `daily_stud_db180624` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;*/
+/*USE `daily_stud_db180624`;*/
+/*create database*/ /*first_commit*/
+DROP DATABASE IF EXISTS `daily_stud_db`;
+CREATE DATABASE IF NOT EXISTS `daily_stud_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `daily_stud_db`;
 
 /*create tables*/
 
