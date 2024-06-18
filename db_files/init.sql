@@ -285,6 +285,8 @@ and a.code_state in (1,3)
  /*только логины, состоящие из цифр*/
 order by cohort1;
 
+/*добавлен комментарий для таблицы daily_stud_db.opstudents_info_ad*/
+ALTER TABLE `op_students_info_ad` COMMENT = 'table daily_stud_db180624.op_students_info_ad';
 
 /*процедура добавления таблиц для OKПM*/
 USE `okpm`;
