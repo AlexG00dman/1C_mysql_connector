@@ -2,11 +2,28 @@
 /*DROP DATABASE IF EXISTS `daily_stud_db180624`;*/
 /*CREATE DATABASE IF NOT EXISTS `daily_stud_db180624` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;*/
 /*USE `daily_stud_db180624`;*/
-DROP DATABASE IF EXISTS `daily_stud_db`;
-CREATE DATABASE IF NOT EXISTS `daily_stud_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+/*create_db*/
+/*CREATE DATABASE IF NOT EXISTS `daily_stud_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci; */
+
 USE `daily_stud_db`;
 
-/*create tables*/
+/*drop tables*/
+DROP TABLE IF EXISTS daily_stud_db.op_students_info;
+DROP TABLE IF EXISTS daily_stud_db.op_students_info_ad;
+DROP TABLE IF EXISTS daily_stud_db.t_assbook;
+DROP TABLE IF EXISTS daily_stud_db.t_students;
+DROP TABLE IF EXISTS daily_stud_db.t_uch_plan;
+DROP TABLE IF EXISTS daily_stud_db.t_inst;
+DROP TABLE IF EXISTS daily_stud_db.t_directions;
+DROP TABLE IF EXISTS daily_stud_db.t_courses_ap;
+DROP TABLE IF EXISTS daily_stud_db.t_profile;
+DROP TABLE IF EXISTS daily_stud_db.t_staff;
+DROP TABLE IF EXISTS daily_stud_db.t_staff_load;
+DROP TABLE IF EXISTS daily_stud_db.t_chiar;
+DROP TABLE IF EXISTS daily_stud_db.t_courses;
+DROP TABLE IF EXISTS daily_stud_db.t_dom_users;
+DROP TABLE IF EXISTS daily_stud_db.t_level;
 
 /* Зачетные книги студентов*/
 CREATE TABLE IF NOT EXISTS
