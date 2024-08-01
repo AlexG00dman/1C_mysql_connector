@@ -1,0 +1,57 @@
+  #check#
+- name: copy credintal file (user_mnt_pass)
+  copy:
+    src: '{{ item }}'
+    dest: '/root/'
+    mode: 0644
+  loop:
+    - './secrets/.pk'
+    - './secrets/.cred.enc'
+
+
+- name: copy BUILD files to '/opt/podman/daily_stud_db/BUILD'
+  copy:
+    src: '{{ item }}'
+    dest: '/opt/podman/daily_stud_db/BUILD'
+    mode: 0644
+  loop:
+
+    - './db_files/BUILD/Dockerfile'
+    - './db_files/BUILD/my.cnf'
+    - './db_files/BUILD/daily_stud_db.sh'
+    - './db_files/BUILD/daily_stud_db.sql'
+
+  become: true
+
+
+- name: copy daily_stud_db.sh
+  copy:
+    src: '{{ item }}'
+    dest: '/usr/bin/'
+    mode: 0755
+  loop:
+    - './db_files/daily_stud_db.sh'
+#   - './db_files/export_daily_stud_db.sh'
+
+
+- name: copy control_list '/temp/list.csv'
+  copy:
+    src: '{{ item }}'
+    dest: '/temp/'
+    mode: 0644
+  loop:
+    - './db_files/list.csv'
+  
+  become: true
+
+
+- name: copy podman-compose.yml
+  copy:
+    src: '{{ item }}'
+    dest: '/opt/podman/podman-compose_stud_db.yml'
+    mode: 0644
+  loop:
+    - './db_files/podman-compose.yml'
+
+  become: true
+

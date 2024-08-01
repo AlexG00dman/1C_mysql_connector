@@ -1,0 +1,28 @@
+#upgrade OS suse 15
+
+- name: Update all packages on OpenSUSE/SUSE Linux
+  zypper:
+    name: '*'
+    state: dist-upgrade
+
+
+#install required system packages
+- name: Install required system packages
+  zypper:
+    name:
+      - python3-pip
+      - python3-setuptools
+      - acl
+      - samba-client
+      - cifs-utils
+    state: latest 
+    update_cache: true
+
+
+#install docker-py and pyMySQL pip packages
+- name: Install  python modules
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop: ['podman', 'docker']
+

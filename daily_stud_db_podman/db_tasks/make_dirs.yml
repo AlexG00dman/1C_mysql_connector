@@ -1,0 +1,27 @@
+- name: Create essensial folders
+  file:
+    path: '/temp/'
+    owner: 'root'
+    group: 'root'
+    mode: 0755
+    state: directory
+
+
+- name: Create essensial folders
+  file:
+    path: '{{ item }}'
+    owner: 'podman'
+    group: 'podman'
+    mode: 0644
+    state: directory
+  with_items:
+    - ['/home/moodle', '/opt/podman/daily_stud_db/BUILD', '/mnt/1c_univer']
+
+
+- name: Add permit 0755 on '/var/log/daily_stud_db'
+  ansible.builtin.file:
+    path: '/var/log/daily_stud_db'
+    state: directory
+    owner: 'mysql'
+    group: 'podman'
+    mode: '0755'

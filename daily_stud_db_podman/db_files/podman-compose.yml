@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+
+  daily_stud_db:
+    # build: ./daily_stud_db/BUILD/
+    image: localhost/mysql:5.7stud_db
+    container_name: daily_stud_db
+    #restart: unless-stopped
+    secrets:
+      - mps01
+      - mps02
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: '/run/secrets/mps01'
+      MYSQL_PASSWORD_FILE: '/run/secrets/mps02'
+      MYSQL_DATABASE: 'daily_stud_db'
+      MYSQL_USER: 'mysql'
+    ports:
+      - '3306:3306'
+    volumes:
+      - './data/mysql:/var/lib/mysql'
+      - '/temp:/var/lib/mysql-files/'
+    networks:
+      - dp-network
+
+secrets:
+  mps01:
+    external: true
+  mps02:
+    external: true
+
+networks:
+  dp-network:

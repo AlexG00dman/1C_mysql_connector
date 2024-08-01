@@ -1,0 +1,138 @@
+- name: prepare platform for working with daily_stud_db (version for OpenSuse 15 and podman) 
+  hosts: vm-podman-test
+  become: true
+
+  vars:
+    - db_host: 'localhost'
+    - mysql_port: '3306'  
+    - mount_point: "/mnt/1c_univer"
+    - moodle: "/home/moodle"
+    - csv_list: ['zachetki.csv', 'level.csv', 'distsipliny_UchPlana.csv', 'spetsialnosti.csv', 'profili.csv', 'sotrudniki.csv', 'nagruzka.csv', 'studenty.csv', 'uch_plan.csv', 'facultity.csv', 'cafedry.csv', 'distsipliny.csv', 'edudom_users.csv']
+    - locales_default_LANG: en_US.UTF-8
+    - locales_default_LC_TIME: en_GB.UTF-8
+    - time_zone: ''
+
+
+  tasks:
+
+
+    #check system on min requerements 
+    - block: 
+      - debug:
+          msg: "Requirements OpenSUSE 12,and at least 2048 mb memory"
+      - meta: end_play
+      when: ansible_distribution != "openSUSE Leap" or (ansible_distribution_major_version | int < 15) or (ansible_memory_mb.real.total) < 1024 
+
+        
+    - name: Get daily_stud_db status
+      ansible.builtin.systemd:
+        name: 'daily_stud_db.timer'
+      register: daily_timer
+
+    #set timezone 
+    - include_tasks: ./db_tasks/set_locale.yml
+
+    #install app
+    - include_tasks: ./db_tasks/install_app.yml
+
+    #podman install
+    - include_tasks: ./db_tasks/install_podman.yml
+      # name: docker setup
+
+
+    - name: Get daily_stud_db container status
+      podman_container_info:
+        name: daily_stud_db 
+      register: daily_stud_db_stat  
+
+    - debug:
+        msg: "{{ daily_stud_db_stat.containers }}"
+
+
+    #check system on previous deployment
+    - block:
+      - debug:
+          msg: "Daily_stud_db has deployed before"
+      - meta: end_play
+        when: "'daily_stud_db1' in daily_stud_db_stat.containers or daily_timer.status.LoadState == 'loaded0'"
+ 
+    #create users
+    - include_tasks: ./db_tasks/create_users.yml
+
+    #make essensial directories
+    - include_tasks: ./db_tasks/make_dirs.yml
+
+    #cp configuration files
+    - include_tasks: ./db_tasks/cp_files.yml
+
+    #create secrets
+    - include_tasks: ./db_tasks/create_secrets.yml
+
+    #mount 1c_univer
+    - include_tasks: ./db_tasks/mount_fs.yml  
+
+
+    - name: Copy tmp file for load to db /temp/
+      copy:
+        src: "{{ mount_point }}/{{ item }}"
+        dest: "/temp/{{ item }}"
+        mode: 0644
+        remote_src: yes
+      loop: "{{ csv_list }}"
+
+
+    - name: Umount "{{mount_point}}"
+      command: umount -f "{{mount_point}}"  
+
+
+    - name: pull mysql image for build
+      containers.podman.podman_image:
+        name: docker.io/library/oraclelinux:7.9
+
+
+    -   name: Build a Docker formatted image
+        containers.podman.podman_image:
+          name: mysql:5.7stud_db
+          path: /opt/podman/daily_stud_db/BUILD
+          build:
+            format: docker
+  
+
+        
+    - name: Create MySql data container
+      containers.podman.podman_container:
+        name: daily_stud_db
+        image: mysql:5.7stud_db
+        volumes:
+          - '/temp:/var/lib/mysql-files'
+        #добавить!!!! data_folder
+        env:
+          MYSQL_ROOT: 'root`@`localhost'
+          MYSQL_ROOT_PASSWORD: '{{ mysql_root_pass }}'  #'mySQLRootPassWord'
+          MYSQL_USER: 'mysql`@`%'
+          MYSQL_PASSWORD: '{{ mysql_pass }}'  #'mySQLRootPassWord'
+        ports:
+          - '{{mysql_port}}:3306'
+        exposed_ports:
+          - '{{mysql_port}}'
+        command: 
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+        state: started
+
+    # #set and configure db_timers
+    - include_tasks: ./db_tasks/db_timers.yml
+
+
+      #pause
+    - name: Waiting for Run container status
+      shell: podman logs daily_stud_db
+      register: docker_init
+      retries: 10
+      delay: 20
+      until: "'/var/run/mysqld/mysqld.sock' in docker_init.stdout"
+
+    - debug:
+        msg: "Daily_stud_db has run"
+
+

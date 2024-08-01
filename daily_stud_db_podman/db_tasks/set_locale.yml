@@ -1,0 +1,6 @@
+- name: Set default locale settings
+  shell: 'localectl set-locale LANG={{ locales_default_LANG }} LC_TIME="{{ locales_default_LC_TIME }}"'
+
+- name: Set timezone to Dubai
+  community.general.timezone:
+    name: Asia/Dubai

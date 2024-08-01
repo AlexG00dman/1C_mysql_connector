@@ -1,0 +1,32 @@
+- name: Check builtin module
+  ansible.builtin.package:
+    name: cifs-utils
+    state: present
+
+
+- name: Check mountpoint exist
+  file:
+    path: "{{mount_point}}"
+    state: directory
+    mode: '0644'
+    owner: root
+    group: root
+
+
+
+- name: Decrypt credential file
+  shell: |
+    key=$(cat /root/.pk)
+    dec=$(openssl enc -d -aes-256-cbc -pbkdf2 -in /root/.cred.enc -k "$key")
+    echo $dec
+  register: decrypted_cred
+
+
+- name: Mount 1C_univer share
+  mount:
+    src: //sstu-deps.sstudepsdom/uit/ois/Temp
+    path: "{{ mount_point }}"
+    fstype: cifs
+    #opts: username=myuser,password={{ decrypted_cred.stdout }}
+    opts: "{{ decrypted_cred.stdout }}"
+    state: mounted

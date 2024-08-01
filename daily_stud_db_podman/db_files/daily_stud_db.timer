@@ -1,0 +1,10 @@
+[Unit]
+Description=Timer for daily_stud_db.
+Requires=daily_stud_db.timer
+
+[Timer]
+Unit=daily_stud_db.service
+OnCalendar=Mon-Fri *-*-* 23:40:00
+
+[Install]
+WantedBy=timers.target                                            

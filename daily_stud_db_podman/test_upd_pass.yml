@@ -1,0 +1,48 @@
+- name: prepare platform for working with daily_stud_db (version for OpenSuse 15 and podman) 
+  hosts: vm-podman-test
+  become: true
+
+  vars:
+    - db_host: 'localhost'
+    - mysql_port: '3306'  
+    - mount_point: "/mnt/1c_univer"
+    - moodle: "/home/moodle"
+    - csv_list: ['zachetki.csv', 'level.csv', 'distsipliny_UchPlana.csv', 'spetsialnosti.csv', 'profili.csv', 'sotrudniki.csv', 'nagruzka.csv', 'studenty.csv', 'uch_plan.csv', 'facultity.csv', 'cafedry.csv', 'distsipliny.csv', 'edudom_users.csv']
+    - locales_default_LANG: en_US.UTF-8
+    - locales_default_LC_TIME: en_GB.UTF-8
+    - time_zone: ''
+
+
+  tasks:
+
+
+
+    - name: update mysql root password for root account
+      mysql_user:
+        login_user: 'root'
+        login_password: "" 
+          # login_unix_socket: /var/run/mysqld/mysqld.sock
+        name: '{{ item.user_name }}'
+        password: "{{ item.user_pass }}"
+        host: 'localhost'
+        login_port: '{{mysql_port}}'
+        priv: "*.*:ALL,GRANT"
+        check_implicit_admin: true
+      loop:
+        - { user_name: 'mysql', user_pass: 'mypass123'}
+        - { user_name: 'root', user_pass: 'mypass123'}
+
+
+
+      #pause
+    - name: Waiting for Run container status
+      shell: podman logs daily_stud_db
+      register: docker_init
+      retries: 10
+      delay: 20
+      until: "'/var/run/mysqld/mysqld.sock' in docker_init.stdout"
+
+    - debug:
+        msg: "Daily_stud_db has run"
+
+
