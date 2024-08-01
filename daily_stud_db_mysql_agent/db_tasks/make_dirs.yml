@@ -1,0 +1,51 @@
+- name: Create essensial folders
+  file:
+    path: '{{ item }}'
+    owner: 'mysql'
+    group: 'podman'
+    mode: 0755
+    state: directory
+  with_items:
+    - '/temp/mysql_agent/'
+ #  - '/temp/mysql_agent/no_valid_stud.csv'
+
+- name: Touch  no_valid_stud.csv
+  ansible.builtin.file:
+    path: '/temp/mysql_agent/no_valid_stud.csv'
+    state: touch
+    mode: 0644
+
+- name: Create essensial folders
+  file:
+    path: '{{ item }}'
+    owner: 'podman'
+    group: 'podman'
+    mode: 0644
+    state: directory
+  with_items:
+    - ['/opt/podman/mysql_agent/BUILD']
+
+- name: Add permit 0755 on '/var/log/daily_stud_db'
+  ansible.builtin.file:
+    path: '/var/log/daily_stud_db'
+    state: directory
+    owner: 'mysql'
+    group: 'podman'
+    mode: '0755'
+
+- name: Set owner and permissions
+  file:
+    path: /usr/share/zoneinfo/Asia/Dubai
+    owner: 'podman'
+    group: 'podman'
+    mode: 0644
+
+- name: Create a symbolic link /etc/localtime_
+  ansible.builtin.file:
+    src: /usr/share/zoneinfo/Asia/Dubai
+    dest: /etc/localtime_
+    owner: 'podman'
+    group: 'podman'
+    state: link
+
+

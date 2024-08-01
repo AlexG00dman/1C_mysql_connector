@@ -1,0 +1,44 @@
+  #check#
+- name: copy file (user_pass)
+  copy:
+    src: '{{ item }}'
+    dest: '/root/'
+    mode: 0644
+  loop:
+    - './secrets/.pk'
+    - './secrets/.skey.enc'
+
+
+- name: copy BUILD files to '/opt/podman/mysql_agent/BUILD'
+  copy:
+    src: '{{ item }}'
+    dest: '/opt/podman/mysql_agent/BUILD'
+    mode: 0644
+  loop:
+    - './db_files/BUILD/Dockerfile'
+    - './db_files/BUILD/mysql_agent.sh'
+  become: true
+
+
+- name: copy podman-compose.yml
+  copy:
+    src: '{{ item }}'
+    dest: '/opt/podman/podman-compose_mysql_agent.yml'
+    mode: 0644
+  loop:
+    - './db_files/podman-compose.yml'
+
+  become: true
+
+
+- name: copy read.me
+  copy:
+    src: '{{ item }}'
+    dest: '/opt/podman/mysql_agent_read.me'
+    mode: 0644
+  loop:
+    - './db_files/read.me'
+
+  become: true
+
+

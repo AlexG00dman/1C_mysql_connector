@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+
+
+  mysql-client:
+    image: localhost/mysql-client:10.6.4ma #imega/mysql-client:10.6.4
+    container_name: mysql-agent
+    #    restart: unless-stopped
+    volumes:
+      - "/temp/mysql_agent/:/tmp/mysql_agent/"
+      - "/var/log/daily_stud_db/:/tmp/log/"
+      - "/etc/localtime_:/etc/localtime:ro"
+    user: 999:1000 #999=mysql;1000=podman
+    secrets:
+      - skey
+    networks:
+      - dp-network
+
+secrets:
+  skey:
+    external: true
+
+
+networks:
+  dp-network: 

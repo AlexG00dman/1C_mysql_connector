@@ -1,0 +1,29 @@
+- name: Create group "mysql" with correct gid
+  ansible.builtin.group:
+    name: 'mysql'
+    state: present
+    gid: 999
+
+- name: Generate password for mysql root
+  shell: openssl rand -base64 12
+  register: user_pass
+
+- name: Create system user 'mysql'
+  user:
+    name: 'mysql'
+    password: "{{ user_pass.stdout | password_hash('sha512') }}"
+    group: "podman"
+    uid: 999
+    state: present
+    shell: /bin/nologon
+    createhome: yes
+
+
+- name: Create user 'okpm'
+  user:
+    name: 'okpm'
+    password: "{{ user_pass.stdout | password_hash('sha512') }}"
+    group: "podman"
+    state: present
+    shell: /bin/nologon
+    createhome: yes                       

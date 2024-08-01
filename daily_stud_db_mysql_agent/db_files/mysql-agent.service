@@ -1,0 +1,15 @@
+#timer for get students data  table from tst_dev
+[Unit]
+Description=mysql-agent
+Wants=mysql-agent.timer
+StartLimitIntervalSec=100
+StartLimitBurst=3
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10s
+ExecStart=/usr/bin/podman restart mysql-agent
+
+[Install]
+WantedBy=multi-user.target

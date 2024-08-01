@@ -1,0 +1,8 @@
+- name: Install Podman and Podman Compose
+  zypper:
+    name:
+      - podman
+      - podman-compose
+    state: latest
+    update_cache: true
+

@@ -1,0 +1,11 @@
+#service for get data students from tst_dev to .csv
+[Unit]
+Description=Timer for mysql-agent service.
+Requires=mysql-agent.timer
+
+[Timer]
+Unit=mysql-agent.service
+OnCalendar=Mon-Fri *-*-* 22:40:00
+
+[Install]
+WantedBy=timers.target                                            
